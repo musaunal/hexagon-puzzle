@@ -26,6 +26,8 @@ public class GridGenerate : MonoBehaviour
     {
         random = new System.Random();
         FillGrid();
+        HashSet<Vector3Int> t = ChechkAllGrid();
+        //t.ToList().ForEach(e => grid2.SetTile(e, tileSelection));     // debug for checkallgrid
     }
 
     void Update()
@@ -74,9 +76,66 @@ public class GridGenerate : MonoBehaviour
     {
         int a = random.Next(1, 6);
         if (a == 1) return tile1;
-        if (a == 2) return tile2;
-        if (a == 3) return tile3;
-        if (a == 4) return tile4;
-        return tile5;
+        else if (a == 2) return tile2;
+        else if (a == 3) return tile3;
+        else if (a == 4) return tile4;
+        else return tile5;
+    }
+
+
+    /*
+     * Aşağıdan Yukarıya traverse eder 
+     * Eğer üst üste iki taş aynı renk ise
+     * sağındaki ve solundakine bakar 
+     * onlardan herhangi biri aynı ise 
+     * liste ekleyip en son bunları döner
+     * */
+    private HashSet<Vector3Int> ChechkAllGrid()
+    {
+        String prev = null;
+        String curr = null;
+
+        Vector3Int right = new Vector3Int(0, 0, 0);
+        Vector3Int left = new Vector3Int(0, 0, 0);
+        HashSet<Vector3Int> trios = new HashSet<Vector3Int>();
+        
+        for (int j = -5; j < gridWidth - 5; j++)    // aşağıdan yukarıya traverse
+        {
+            prev = grid.GetTile(new Vector3Int(0, j, 0)).name;
+            for (int i = 1; i < gridHeight; i++)
+            {
+                curr = grid.GetTile(new Vector3Int(i, j, 0)).name;
+                if (prev == curr)
+                {
+                    if (j != 2 && j % 2 != 0)       // sağdakini taş
+                        right.Set(i, j+1, 0);
+                    else 
+                        right.Set(i-1, j+1, 0);
+
+                    if (j != -5 && j % 2 != 0)      // soldaki taş
+                        left.Set(i, j - 1, 0);
+                    else
+                        left.Set(i - 1, j - 1, 0);
+
+
+                    if (j !=2 && curr == grid.GetTile(right).name)
+                    {
+                        trios.Add(new Vector3Int(i, j, 0));
+                        trios.Add(right);
+                        trios.Add(new Vector3Int(i-1, j, 0));
+                    }
+
+                    if (j != -5 && curr == grid.GetTile(left).name)
+                    {
+                        trios.Add(new Vector3Int(i, j, 0));
+                        trios.Add(left);
+                        trios.Add(new Vector3Int(i-1, j, 0));
+                    }
+                    
+                }
+                prev = curr;
+            }
+        }
+        return trios;
     }
 }
