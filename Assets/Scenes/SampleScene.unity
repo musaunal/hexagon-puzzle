@@ -214,6 +214,7 @@ GameObject:
   m_Component:
   - component: {fileID: 811265860}
   - component: {fileID: 811265859}
+  - component: {fileID: 811265861}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -233,6 +234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5546c4caa04948348be734033f295338, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  swipe: {fileID: 811265861}
   gridWidth: 8
   gridHeight: 9
   grid: {fileID: 1982914271}
@@ -257,6 +259,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &811265861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 811265858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2771b2b52fcd8547aa28b32050f9ce3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1068835814
 GameObject:
   m_ObjectHideFlags: 0

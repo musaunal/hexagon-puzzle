@@ -9,6 +9,7 @@ public class GridGenerate : MonoBehaviour
 {
     private System.Random random;
     private HashSet<Vector3Int> selecteds = new HashSet<Vector3Int>();
+    public SwipeController swipe;
 
     public int gridWidth;
     public int gridHeight;
@@ -26,24 +27,21 @@ public class GridGenerate : MonoBehaviour
     {
         random = new System.Random();
         FillGrid();
-        HashSet<Vector3Int> t = ChechkAllGrid();
-        //t.ToList().ForEach(e => grid2.SetTile(e, tileSelection));     // debug for checkallgrid
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (swipe.Tap)
         {
             if (selecteds.Count != 0)   // eski seçimi siler
             {
-                selecteds.ToList().ForEach(t => grid2.SetTile(t, null));
-                selecteds.Clear();
+                ClearSelecteds();
             }
 
             /*** etrafından 3 eleman seçer ***/
             Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            selecteds.Add(grid.WorldToCell(new Vector3(pos.x + 1.2f, pos.y, pos.z)));
             selecteds.Add(grid.WorldToCell(new Vector3(pos.x - 1.2f, pos.y, pos.z)));
+            selecteds.Add(grid.WorldToCell(new Vector3(pos.x + 1.2f, pos.y, pos.z)));
             selecteds.Add(grid.WorldToCell(new Vector3(pos.x, pos.y + 1.3f, pos.z)));
             selecteds.Add(grid.WorldToCell(new Vector3(pos.x, pos.y - 1.3f, pos.z)));
 
@@ -59,6 +57,11 @@ public class GridGenerate : MonoBehaviour
             else
                 selecteds.ToList().ForEach(t => grid2.SetTile(t, tileSelection));  // seçimi uygula
         }
+
+        else if (selecteds.Count > 0 && (swipe.SwipeLeft || swipe.SwipeRight) )
+        {
+            StartCoroutine(SwapRoutine());
+        }
     }
 
     private void FillGrid()
@@ -69,6 +72,14 @@ public class GridGenerate : MonoBehaviour
             {
                 grid.SetTile(new Vector3Int(i, j, 0), GetRandTile());
             }
+        }
+
+        /*** açılışta patlama olmaması için Aynı renkli üçlüleri düzeltir ***/
+        HashSet<Vector3Int> sameColorGroups = ChechkAllGrid();
+        while (sameColorGroups.Count != 0)
+        {
+            sameColorGroups.ToList().ForEach(t => grid.SetTile(t, GetRandTile()));
+            sameColorGroups = ChechkAllGrid();
         }
     }
 
@@ -82,6 +93,175 @@ public class GridGenerate : MonoBehaviour
         else return tile5;
     }
 
+
+    private IEnumerator SwapRoutine()
+    {
+        if (swipe.SwipeRight)
+        {
+            //for (int i = 0; i < 3; i++)
+            //{
+                Swap(true);
+                //yield return new WaitForSeconds(1);
+                List<Vector3Int> matcheds = ChechkAllGrid().ToList();
+                bool isBreak = false;
+                while (matcheds.Count() != 0)
+                {
+                    isBreak = true;
+                    ClearSelecteds();
+                    matcheds.ForEach(t => grid.SetTile(t, null));
+                    FillBlanks(matcheds);
+                    matcheds = ChechkAllGrid().ToList();
+                    //Debug.Log("izle");
+                    //matcheds.ForEach(t => Debug.Log(t));
+                }
+                //if (isBreak)
+                    //break;
+            //}
+        }
+        else if (swipe.SwipeLeft)
+        {
+            Swap(false);
+            yield return new WaitForSeconds(1);
+        }
+    }
+
+    private void Swap(bool isRight)
+    {
+        int[] indexes = DifferenciateHexagons(selecteds.ToList());
+        TileBase temp = grid.GetTile(selecteds.ElementAt(indexes[0]));
+        if (isRight)
+        {
+            if (indexes[3] == 1)
+            {
+                grid.SetTile(selecteds.ElementAt(indexes[0]), grid.GetTile(selecteds.ElementAt(indexes[1])));
+                grid.SetTile(selecteds.ElementAt(indexes[1]), grid.GetTile(selecteds.ElementAt(indexes[2])));
+                grid.SetTile(selecteds.ElementAt(indexes[2]), temp);
+            }
+            else
+            {
+                grid.SetTile(selecteds.ElementAt(indexes[0]), grid.GetTile(selecteds.ElementAt(indexes[2])));
+                grid.SetTile(selecteds.ElementAt(indexes[2]), grid.GetTile(selecteds.ElementAt(indexes[1])));
+                grid.SetTile(selecteds.ElementAt(indexes[1]), temp);
+            }
+        }
+        else
+        {
+            if (indexes[3] == 1)
+            {
+                grid.SetTile(selecteds.ElementAt(indexes[0]), grid.GetTile(selecteds.ElementAt(indexes[2])));
+                grid.SetTile(selecteds.ElementAt(indexes[2]), grid.GetTile(selecteds.ElementAt(indexes[1])));
+                grid.SetTile(selecteds.ElementAt(indexes[1]), temp);
+            }
+            else
+            {
+                grid.SetTile(selecteds.ElementAt(indexes[0]), grid.GetTile(selecteds.ElementAt(indexes[1])));
+                grid.SetTile(selecteds.ElementAt(indexes[1]), grid.GetTile(selecteds.ElementAt(indexes[2])));
+                grid.SetTile(selecteds.ElementAt(indexes[2]), temp);
+            }
+        }
+
+    }
+
+    private void FillBlanks(List<Vector3Int> list)
+    {
+        ILookup<int, Vector3Int> lookup = list.ToLookup(t => t.y);  // boşlukları bulunduğu kolonlara göre grupladık
+
+        foreach (var item in lookup)    // her kolon için ayrı ayrı aşağı kaydırma yaptık
+        {
+            Debug.Log(" --- " + item.Key);
+            item.ToList().ForEach(t => Debug.Log(t));
+
+            List<Vector3Int> values = item.ToList();
+
+            int smallest = 8;
+            int index = 0;
+            for (int i = 0; i < values.Count; i++)  // find smallest y valued index
+            {
+                if (values.ElementAt(i).x < smallest)
+                {
+                    index = i;
+                    smallest = values.ElementAt(i).x;
+                }
+            }
+            //Debug.Log("smallest : " + smallest);
+            
+            for (int i = values.ElementAt(index).x; i < gridHeight; i++)
+            {
+                grid.SetTile(new Vector3Int(i, item.Key, 0), grid.GetTile(new Vector3Int(i + values.Count, item.Key, 0)));
+            }
+        }
+
+        foreach (var item in lookup)    // üstteki boşlukları rastgele hexagonlar ile doldur
+        {
+            List<Vector3Int> values = item.ToList();
+            for (int i = 0; i < values.Count; i++)
+            {
+                grid.SetTile(new Vector3Int(gridHeight - i - 1, item.Key, 0), GetRandTile());
+            }
+        }
+    }
+
+    private void ClearSelecteds()
+    {
+        selecteds.ToList().ForEach(t => grid2.SetTile(t, null));
+        selecteds.Clear();
+    }
+
+    /* 0: üstteki hex
+     * 1: alttaki hex
+     * 2: sağdaki veya soldaki hex
+     * 3: "2" nolu hex sağda ise 1 solda ise 0
+     */
+    private int[] DifferenciateHexagons(List<Vector3Int> list)
+    {
+        int[] indexes = new int[4];
+        if (list.ElementAt(0).y == list.ElementAt(1).y)
+        {
+            indexes[2] = 2;
+            indexes[3] = list.ElementAt(2).y > list.ElementAt(0).y ? 1 : 0;
+            if (list.ElementAt(0).x > list.ElementAt(1).x)
+            {
+                indexes[0] = 0;
+                indexes[1] = 1;
+            }
+            else
+            {
+                indexes[0] = 1;
+                indexes[1] = 0;
+            }
+        }
+        else if (list.ElementAt(0).y == list.ElementAt(2).y)
+        {
+            indexes[2] = 1;
+            indexes[3] = list.ElementAt(1).y > list.ElementAt(0).y ? 1 : 0;
+            if (list.ElementAt(0).x > list.ElementAt(2).x)
+            {
+                indexes[0] = 0;
+                indexes[1] = 2;
+            }
+            else
+            {
+                indexes[0] = 2;
+                indexes[1] = 0;
+            }
+        }
+        else
+        {
+            indexes[2] = 0;
+            indexes[3] = list.ElementAt(0).y > list.ElementAt(1).y ? 1 : 0;
+            if (list.ElementAt(1).x > list.ElementAt(2).x)
+            {
+                indexes[0] = 1;
+                indexes[1] = 2;
+            }
+            else
+            {
+                indexes[0] = 2;
+                indexes[1] = 1;
+            }
+        }
+        return indexes;
+    }
 
     /*
      * Aşağıdan Yukarıya traverse eder 
@@ -98,7 +278,7 @@ public class GridGenerate : MonoBehaviour
         Vector3Int right = new Vector3Int(0, 0, 0);
         Vector3Int left = new Vector3Int(0, 0, 0);
         HashSet<Vector3Int> trios = new HashSet<Vector3Int>();
-        
+
         for (int j = -5; j < gridWidth - 5; j++)    // aşağıdan yukarıya traverse
         {
             prev = grid.GetTile(new Vector3Int(0, j, 0)).name;
@@ -107,31 +287,31 @@ public class GridGenerate : MonoBehaviour
                 curr = grid.GetTile(new Vector3Int(i, j, 0)).name;
                 if (prev == curr)
                 {
-                    if (j != 2 && j % 2 != 0)       // sağdakini taş
-                        right.Set(i, j+1, 0);
-                    else 
-                        right.Set(i-1, j+1, 0);
+                    if (j != gridWidth-6 && j % 2 != 0)       // sağdakini taş
+                        right.Set(i, j + 1, 0);
+                    else
+                        right.Set(i - 1, j + 1, 0);
 
                     if (j != -5 && j % 2 != 0)      // soldaki taş
                         left.Set(i, j - 1, 0);
                     else
                         left.Set(i - 1, j - 1, 0);
 
-
-                    if (j !=2 && curr == grid.GetTile(right).name)
+                    //Debug.Log(i + "  " + j + "  " + right);
+                    if (j != gridWidth-6 && curr == grid.GetTile(right).name)
                     {
                         trios.Add(new Vector3Int(i, j, 0));
                         trios.Add(right);
-                        trios.Add(new Vector3Int(i-1, j, 0));
+                        trios.Add(new Vector3Int(i - 1, j, 0));
                     }
 
                     if (j != -5 && curr == grid.GetTile(left).name)
                     {
                         trios.Add(new Vector3Int(i, j, 0));
                         trios.Add(left);
-                        trios.Add(new Vector3Int(i-1, j, 0));
+                        trios.Add(new Vector3Int(i - 1, j, 0));
                     }
-                    
+
                 }
                 prev = curr;
             }
