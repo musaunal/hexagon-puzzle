@@ -58,7 +58,7 @@ public class GridGenerate : MonoBehaviour
                 selecteds.ToList().ForEach(t => grid2.SetTile(t, tileSelection));  // seçimi uygula
         }
 
-        else if (selecteds.Count > 0 && (swipe.SwipeLeft || swipe.SwipeRight) )
+        else if (selecteds.Count > 0 && (swipe.SwipeLeft || swipe.SwipeRight))
         {
             StartCoroutine(SwapRoutine());
         }
@@ -96,32 +96,31 @@ public class GridGenerate : MonoBehaviour
 
     private IEnumerator SwapRoutine()
     {
-        if (swipe.SwipeRight)
+        bool isRight = false;
+        if (swipe.SwipeRight)   // Yönü belirle
         {
-            //for (int i = 0; i < 3; i++)
-            //{
-                Swap(true);
-                //yield return new WaitForSeconds(1);
-                List<Vector3Int> matcheds = ChechkAllGrid().ToList();
-                bool isBreak = false;
-                while (matcheds.Count() != 0)
-                {
-                    isBreak = true;
-                    ClearSelecteds();
-                    matcheds.ForEach(t => grid.SetTile(t, null));
-                    FillBlanks(matcheds);
-                    matcheds = ChechkAllGrid().ToList();
-                    //Debug.Log("izle");
-                    //matcheds.ForEach(t => Debug.Log(t));
-                }
-                //if (isBreak)
-                    //break;
-            //}
+            isRight = true;
         }
-        else if (swipe.SwipeLeft)
+
+        for (int i = 0; i < 3; i++)     // döndürme işlemi
         {
-            Swap(false);
-            yield return new WaitForSeconds(1);
+            Swap(isRight);
+            yield return new WaitForSeconds(1);         // 1 saniye bekletiyoruz ki oyuncu görsün 
+            List<Vector3Int> matcheds = ChechkAllGrid().ToList();
+            bool isBreak = false;
+            while (matcheds.Count() != 0)
+            {
+                isBreak = true;
+                ClearSelecteds();
+                matcheds.ForEach(t => grid.SetTile(t, null));
+                //Debug.Log("izle:");
+                //matcheds.ForEach(t => Debug.Log(t));
+                while (StillBlanksLeft().Count > 0)
+                    FillBlanks(matcheds);
+                matcheds = ChechkAllGrid().ToList();
+            }
+            if (isBreak)
+                break;
         }
     }
 
@@ -168,9 +167,6 @@ public class GridGenerate : MonoBehaviour
 
         foreach (var item in lookup)    // her kolon için ayrı ayrı aşağı kaydırma yaptık
         {
-            Debug.Log(" --- " + item.Key);
-            item.ToList().ForEach(t => Debug.Log(t));
-
             List<Vector3Int> values = item.ToList();
 
             int smallest = 8;
@@ -183,8 +179,7 @@ public class GridGenerate : MonoBehaviour
                     smallest = values.ElementAt(i).x;
                 }
             }
-            //Debug.Log("smallest : " + smallest);
-            
+
             for (int i = values.ElementAt(index).x; i < gridHeight; i++)
             {
                 grid.SetTile(new Vector3Int(i, item.Key, 0), grid.GetTile(new Vector3Int(i + values.Count, item.Key, 0)));
@@ -199,6 +194,21 @@ public class GridGenerate : MonoBehaviour
                 grid.SetTile(new Vector3Int(gridHeight - i - 1, item.Key, 0), GetRandTile());
             }
         }
+    }
+
+    private List<Vector3Int> StillBlanksLeft()  // traverse grid search blank tiles
+    {
+        List<Vector3Int> blanks = new List<Vector3Int>();
+        for (int i = 0; i < gridHeight; i++)
+        {
+            for (int j = -5; j < gridWidth - 5; j++)
+            {
+                var a = new Vector3Int(i, j, 0);
+                if (grid.GetTile(a) == null)
+                    blanks.Add(a);
+            }
+        }
+        return blanks;
     }
 
     private void ClearSelecteds()
@@ -281,13 +291,13 @@ public class GridGenerate : MonoBehaviour
 
         for (int j = -5; j < gridWidth - 5; j++)    // aşağıdan yukarıya traverse
         {
-            prev = grid.GetTile(new Vector3Int(0, j, 0)).name;
+            prev = grid.GetTile(new Vector3Int(0, j, 0))?.name;
             for (int i = 1; i < gridHeight; i++)
             {
-                curr = grid.GetTile(new Vector3Int(i, j, 0)).name;
+                curr = grid.GetTile(new Vector3Int(i, j, 0))?.name;
                 if (prev == curr)
                 {
-                    if (j != gridWidth-6 && j % 2 != 0)       // sağdakini taş
+                    if (j != gridWidth - 6 && j % 2 != 0)       // sağdakini taş
                         right.Set(i, j + 1, 0);
                     else
                         right.Set(i - 1, j + 1, 0);
@@ -297,15 +307,14 @@ public class GridGenerate : MonoBehaviour
                     else
                         left.Set(i - 1, j - 1, 0);
 
-                    //Debug.Log(i + "  " + j + "  " + right);
-                    if (j != gridWidth-6 && curr == grid.GetTile(right).name)
+                    if (j != gridWidth - 6 && curr == grid.GetTile(right)?.name)
                     {
                         trios.Add(new Vector3Int(i, j, 0));
                         trios.Add(right);
                         trios.Add(new Vector3Int(i - 1, j, 0));
                     }
 
-                    if (j != -5 && curr == grid.GetTile(left).name)
+                    if (j != -5 && curr == grid.GetTile(left)?.name)
                     {
                         trios.Add(new Vector3Int(i, j, 0));
                         trios.Add(left);
