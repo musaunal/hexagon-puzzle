@@ -15,6 +15,10 @@ public class GridGenerate : MonoBehaviour
     private HashSet<Vector3Int> selecteds = new HashSet<Vector3Int>();
     public SwipeController swipe;
     public TMP_Text score;
+    public TMP_Text bombTime;
+    public TMP_Text bombText;
+    private bool isBomb = false;
+    private int bombCount = 1;
 
     public int gridWidth;
     public int gridHeight;
@@ -26,6 +30,7 @@ public class GridGenerate : MonoBehaviour
     public TileBase tile3;
     public TileBase tile4;
     public TileBase tile5;
+    public TileBase tileBomb;
     public TileBase tileSelection;
 
     void Start()
@@ -65,6 +70,7 @@ public class GridGenerate : MonoBehaviour
 
         else if (selecteds.Count > 0 && (swipe.SwipeLeft || swipe.SwipeRight))
         {
+            selecteds.ToList().ForEach(t => Debug.Log(grid.GetTile(t).name));
             StartCoroutine(SwapRoutine());
         }
     }
@@ -96,6 +102,16 @@ public class GridGenerate : MonoBehaviour
 
     private TileBase GetRandTile()
     {
+        if(Int32.Parse(score.text) > 250 * bombCount)
+        {
+            bombCount++;
+            bombTime.gameObject.SetActive(true);
+            bombTime.text = "" + 5;
+            bombText.gameObject.SetActive(true);
+            isBomb = true;
+            tileBomb.name = "Magma";
+            return tileBomb;
+        }
         int a = random.Next(1, 6);
         if (a == 1) return tile1;
         else if (a == 2) return tile2;
@@ -108,6 +124,7 @@ public class GridGenerate : MonoBehaviour
     private IEnumerator SwapRoutine()
     {
         bool isRight = false;
+        bool isMatchOccur = false;
         if (swipe.SwipeRight)   // Yönü belirle
         {
             isRight = true;
@@ -121,17 +138,49 @@ public class GridGenerate : MonoBehaviour
             bool isBreak = false;
             while (matcheds.Count() != 0)
             {
+                isMatchOccur = true;
                 isBreak = true;
                 ClearSelecteds();
                 matcheds.ForEach(t => grid.SetTile(t, null));
+                score.text = "" + (Int32.Parse(score.text) + 5 * matcheds.Count);
                 while (StillBlanksLeft().Count > 0)
                     FillBlanks(matcheds);
-                score.text = "" + (Int32.Parse(score.text) + 5 * matcheds.Count);
                 matcheds = ChechkAllGrid().ToList();
             }
             if (isBreak)
                 break;
         }
+        
+        if (isMatchOccur && isBomb)
+        {
+            if (IsBombDestroyed())
+            {
+                bombText.gameObject.SetActive(false);
+                bombTime.gameObject.SetActive(false);
+                bombTime.text = "" + 0;
+                isBomb = false;
+            }
+            else
+            {
+                int timeleft = Int32.Parse(bombTime.text);
+                if (timeleft == 1)                          // Game Over
+                    back();
+                bombTime.text = "" + --timeleft;
+            }
+        }
+    }
+
+    private bool IsBombDestroyed()
+    {
+        for (int i = 0; i < gridHeight; i++)
+        {
+            for (int j = -5; j < gridWidth - 5; j++)
+            {
+                if (grid.GetTile(new Vector3Int(i, j, 0)) == tileBomb)
+                    return false;
+            }
+        }
+        return true;
     }
 
     private void Swap(bool isRight)
