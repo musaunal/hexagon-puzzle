@@ -70,8 +70,12 @@ public class GridGenerate : MonoBehaviour
 
         else if (selecteds.Count > 0 && (swipe.SwipeLeft || swipe.SwipeRight))
         {
-            selecteds.ToList().ForEach(t => Debug.Log(grid.GetTile(t).name));
             StartCoroutine(SwapRoutine());
+        }
+
+        if (IsGameEnd())
+        {
+            back();
         }
     }
 
@@ -102,7 +106,7 @@ public class GridGenerate : MonoBehaviour
 
     private TileBase GetRandTile()
     {
-        if(Int32.Parse(score.text) > 1000 * bombCount)
+        if (Int32.Parse(score.text) > 1000 * bombCount)
         {
             bombCount++;
             bombTime.gameObject.SetActive(true);
@@ -150,7 +154,7 @@ public class GridGenerate : MonoBehaviour
             if (isBreak)
                 break;
         }
-        
+
         if (isMatchOccur && isBomb)
         {
             if (IsBombDestroyed())
@@ -387,11 +391,72 @@ public class GridGenerate : MonoBehaviour
         return trios;
     }
 
+    private bool IsGameEnd()
+    {
+        String prev = null;
+        String curr = null;
+
+        Vector3Int right = new Vector3Int(0, 0, 0);
+        Vector3Int left = new Vector3Int(0, 0, 0);
+
+        for (int j = -5; j < gridWidth - 5; j++)    // aşağıdan yukarıya traverse
+        {
+            prev = grid.GetTile(new Vector3Int(0, j, 0))?.name;
+            for (int i = 1; i < gridHeight; i++)
+            {
+                curr = grid.GetTile(new Vector3Int(i, j, 0))?.name;
+                if (prev == curr)
+                {
+                    if (j != gridWidth - 6 && j % 2 != 0)       // sağdakini taş
+                        right.Set(i, j + 1, 0);
+                    else
+                        right.Set(i - 1, j + 1, 0);
+
+                    if (j != -5 && j % 2 != 0)      // soldaki taş
+                        left.Set(i, j - 1, 0);
+                    else
+                        left.Set(i - 1, j - 1, 0);
+
+                    if (j != gridWidth - 6)       // right'tın komşuları arasında istediğimiz taş var mı ?
+                    {
+                        if (grid.GetTile(new Vector3Int(right.x + 1, right.y, 0))?.name == curr) return false;
+                        if (grid.GetTile(new Vector3Int(right.x - 1, right.y, 0))?.name == curr) return false;
+                        if (grid.GetTile(new Vector3Int(right.x, right.y + 1, 0))?.name == curr) return false;
+                        if (j % 2 != 0)         // Odd column 
+                        {
+                            if (grid.GetTile(new Vector3Int(right.x + 1, right.y + 1, 0))?.name == curr) return false;
+                        }
+                        else
+                        {
+                            if (grid.GetTile(new Vector3Int(right.x - 1, right.y + 1, 0))?.name == curr) return false;
+                        }
+                    }
+
+                    if (j != -5 && curr == grid.GetTile(left)?.name)    // left'in komşuları arasında istediğimiz taş var mı ?
+                    {
+                        if (grid.GetTile(new Vector3Int(right.x + 1, right.y, 0))?.name == curr) return false;
+                        if (grid.GetTile(new Vector3Int(right.x - 1, right.y, 0))?.name == curr) return false;
+                        if (grid.GetTile(new Vector3Int(right.x, right.y - 1, 0))?.name == curr) return false;
+                        if (j % 2 != 0)         // Odd column 
+                        {
+                            if (grid.GetTile(new Vector3Int(right.x + 1, right.y - 1, 0))?.name == curr) return false;
+                        }
+                        else
+                        {
+                            if (grid.GetTile(new Vector3Int(right.x - 1, right.y - 1, 0))?.name == curr) return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     public void setHeight(string s)
     {
         gridHeight = Int32.Parse(s);
     }
-    
+
     public void setWidth(string s)
     {
         gridWidth = Int32.Parse(s);
