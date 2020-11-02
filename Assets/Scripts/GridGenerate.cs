@@ -19,6 +19,8 @@ public class GridGenerate : MonoBehaviour
     public TMP_Text bombText;
     private bool isBomb = false;
     private int bombCount = 1;
+    private int colorCount = 5;
+    private bool colorChange = false;
 
     public int gridWidth;
     public int gridHeight;
@@ -30,11 +32,13 @@ public class GridGenerate : MonoBehaviour
     public TileBase tile3;
     public TileBase tile4;
     public TileBase tile5;
+    public TileBase tileReserve;
     public TileBase tileBomb;
     public TileBase tileSelection;
 
     void Start()
     {
+        Debug.Log(colorChange);
         random = new System.Random();
         FillGrid();
     }
@@ -83,6 +87,9 @@ public class GridGenerate : MonoBehaviour
     {
         gridWidth = PlayerPrefs.GetInt("width");
         gridHeight = PlayerPrefs.GetInt("height");
+        Debug.Log(PlayerPrefs.GetInt("changeColor"));
+        colorChange = PlayerPrefs.GetInt("changeColor") == 1;
+        colorCount = PlayerPrefs.GetInt("colorNum") +1;
     }
 
     private void FillGrid()
@@ -116,11 +123,12 @@ public class GridGenerate : MonoBehaviour
             tileBomb.name = "Magma";
             return tileBomb;
         }
-        int a = random.Next(1, 6);
+        int a = random.Next(1, colorCount);
         if (a == 1) return tile1;
         else if (a == 2) return tile2;
         else if (a == 3) return tile3;
         else if (a == 4) return tile4;
+        else if (colorChange) return tileReserve;
         else return tile5;
     }
 

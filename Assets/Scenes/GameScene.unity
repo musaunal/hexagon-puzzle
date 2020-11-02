@@ -626,6 +626,7 @@ MonoBehaviour:
   tile3: {fileID: 11400000, guid: 006023afb68c5eb45b51c1ab4ecdac26, type: 2}
   tile4: {fileID: 11400000, guid: 1623533163fa87d4ebbb6ce235ab3053, type: 2}
   tile5: {fileID: 11400000, guid: 1836be57069bb7d49916c3955c026f33, type: 2}
+  tileReserve: {fileID: 11400000, guid: 5c8608e01fe468942b20d181c7563a6c, type: 2}
   tileBomb: {fileID: 11400000, guid: 1f0ac76e88342b24ea5b9a75832f6963, type: 2}
   tileSelection: {fileID: 11400000, guid: 5b412b0569afb354086d40d827ee9a4a, type: 2}
 --- !u!4 &811265860

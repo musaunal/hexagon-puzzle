@@ -14,6 +14,9 @@ public class mainMenu : MonoBehaviour
     int height;
     public TMP_InputField w;
     public TMP_InputField h;
+    public Slider slider;
+    public TMP_Text sldTxt;
+    public Toggle toggle;
     public void PlayGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
@@ -36,9 +39,22 @@ public class mainMenu : MonoBehaviour
         PlayerPrefs.SetInt("height", height);
     }
 
+    public void SliderValue()
+    {
+        sldTxt.text = "" + slider.value;
+        PlayerPrefs.SetInt("colorNum", (int)slider.value);
+    }
+
+    public void OnColorChange()
+    {
+        PlayerPrefs.SetInt("changeColor" ,toggle.isOn == true ? 1 : 0);
+    }
 
     void OnEnable()
     {
+        PlayerPrefs.SetInt("changeColor" ,toggle.isOn == true ? 1 : 0);
+        PlayerPrefs.SetInt("colorNum", (int)slider.value);
+
         width = PlayerPrefs.GetInt("width");
         height = PlayerPrefs.GetInt("height");
         if(width == 0 || height == 0)
