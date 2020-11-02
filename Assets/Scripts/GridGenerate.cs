@@ -102,7 +102,7 @@ public class GridGenerate : MonoBehaviour
 
     private TileBase GetRandTile()
     {
-        if(Int32.Parse(score.text) > 250 * bombCount)
+        if(Int32.Parse(score.text) > 1000 * bombCount)
         {
             bombCount++;
             bombTime.gameObject.SetActive(true);
