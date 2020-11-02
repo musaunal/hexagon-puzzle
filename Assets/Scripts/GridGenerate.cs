@@ -2,8 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 // using UnityScript.Steps;
 
 public class GridGenerate : MonoBehaviour
@@ -11,6 +14,7 @@ public class GridGenerate : MonoBehaviour
     private System.Random random;
     private HashSet<Vector3Int> selecteds = new HashSet<Vector3Int>();
     public SwipeController swipe;
+    public TMP_Text score;
 
     public int gridWidth;
     public int gridHeight;
@@ -120,10 +124,9 @@ public class GridGenerate : MonoBehaviour
                 isBreak = true;
                 ClearSelecteds();
                 matcheds.ForEach(t => grid.SetTile(t, null));
-                //Debug.Log("izle:");
-                //matcheds.ForEach(t => Debug.Log(t));
                 while (StillBlanksLeft().Count > 0)
                     FillBlanks(matcheds);
+                score.text = "" + (Int32.Parse(score.text) + 5 * matcheds.Count);
                 matcheds = ChechkAllGrid().ToList();
             }
             if (isBreak)
@@ -345,5 +348,9 @@ public class GridGenerate : MonoBehaviour
         gridWidth = Int32.Parse(s);
     }
 
+    public void back()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+    }
 
 }

@@ -41,7 +41,15 @@ public class mainMenu : MonoBehaviour
     {
         width = PlayerPrefs.GetInt("width");
         height = PlayerPrefs.GetInt("height");
-        w.text = ""+width;
-        h.text = ""+height;
+        if(width == 0 || height == 0)
+        {
+            w.text = "" + 8;
+            h.text = "" + 9;
+        }
+        else
+        {
+            w.text = ""+width;
+            h.text = ""+height;
+        }
     }
 }
