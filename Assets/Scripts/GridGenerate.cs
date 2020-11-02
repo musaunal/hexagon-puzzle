@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+// using UnityScript.Steps;
 
 public class GridGenerate : MonoBehaviour
 {
@@ -62,6 +63,12 @@ public class GridGenerate : MonoBehaviour
         {
             StartCoroutine(SwapRoutine());
         }
+    }
+
+    void OnEnable()
+    {
+        gridWidth = PlayerPrefs.GetInt("width");
+        gridHeight = PlayerPrefs.GetInt("height");
     }
 
     private void FillGrid()
@@ -327,4 +334,16 @@ public class GridGenerate : MonoBehaviour
         }
         return trios;
     }
+
+    public void setHeight(string s)
+    {
+        gridHeight = Int32.Parse(s);
+    }
+    
+    public void setWidth(string s)
+    {
+        gridWidth = Int32.Parse(s);
+    }
+
+
 }
