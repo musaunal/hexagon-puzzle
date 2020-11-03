@@ -38,7 +38,6 @@ public class GridGenerate : MonoBehaviour
 
     void Start()
     {
-        Debug.Log(colorChange);
         random = new System.Random();
         FillGrid();
     }
@@ -87,7 +86,6 @@ public class GridGenerate : MonoBehaviour
     {
         gridWidth = PlayerPrefs.GetInt("width");
         gridHeight = PlayerPrefs.GetInt("height");
-        Debug.Log(PlayerPrefs.GetInt("changeColor"));
         colorChange = PlayerPrefs.GetInt("changeColor") == 1;
         colorCount = PlayerPrefs.GetInt("colorNum") +1;
     }

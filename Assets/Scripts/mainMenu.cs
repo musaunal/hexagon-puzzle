@@ -10,8 +10,8 @@ using UnityEngine.UI;
 public class mainMenu : MonoBehaviour
 {
 
-    int width;
-    int height;
+    int width = 8;
+    int height = 9;
     public TMP_InputField w;
     public TMP_InputField h;
     public Slider slider;
@@ -54,18 +54,20 @@ public class mainMenu : MonoBehaviour
     {
         PlayerPrefs.SetInt("changeColor" ,toggle.isOn == true ? 1 : 0);
         PlayerPrefs.SetInt("colorNum", (int)slider.value);
+        PlayerPrefs.SetInt("height", height);
+        PlayerPrefs.SetInt("width", width);
 
-        width = PlayerPrefs.GetInt("width");
-        height = PlayerPrefs.GetInt("height");
-        if(width == 0 || height == 0)
-        {
-            w.text = "" + 8;
-            h.text = "" + 9;
-        }
-        else
-        {
-            w.text = ""+width;
-            h.text = ""+height;
-        }
+        //width = PlayerPrefs.GetInt("width");
+        //height = PlayerPrefs.GetInt("height");
+        //if(width == 0 || height == 0)
+        //{
+        //    w.text = "" + 8;
+        //    h.text = "" + 9;
+        //}
+        //else
+        //{
+        //    w.text = ""+width;
+        //    h.text = ""+height;
+        //}
     }
 }
